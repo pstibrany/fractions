@@ -873,22 +873,20 @@ function checkQuiz() {
             return;
         }
 
-        // Check that the answer is exactly correct AND fully simplified
         const [usn, usd] = simplify(userN, userD);
         const isEquivalent = usn === quiz.answerN && usd === quiz.answerD;
         const isFullySimplified = userN === usn && userD === usd;
+        const requireSimplified = currentOp === 'forkortning';
 
-        if (isEquivalent && isFullySimplified) {
+        if (isEquivalent && (isFullySimplified || !requireSimplified)) {
             fb.className = 'quiz-feedback visible correct';
             let answerDisplay = quiz.answerD === 1 ? `${quiz.answerN}` : frac(quiz.answerN, quiz.answerD);
             fb.innerHTML = `<strong>Rigtigt!</strong> Svaret er ${answerDisplay}.`;
-        } else if (isEquivalent && !isFullySimplified) {
-            // Right value but not fully simplified
-            const result = quiz.explain();
+        } else if (isEquivalent && !isFullySimplified && requireSimplified) {
             let answerDisplay = quiz.answerD === 1 ? `${quiz.answerN}` : frac(quiz.answerN, quiz.answerD);
             fb.className = 'quiz-feedback visible wrong';
             fb.innerHTML = `
-                <strong>Næsten!</strong> ${frac(userN, userD)} er rigtigt udregnet, men brøken kan forkortes yderligere. Det fuldt forkortede svar er ${answerDisplay}.
+                <strong>Næsten!</strong> ${frac(userN, userD)} er rigtigt, men brøken kan forkortes yderligere. Det fuldt forkortede svar er ${answerDisplay}.
                 <div class="steps" style="margin-top:0.75rem;">
                     <h3>Sådan forkorter man:</h3>
                     <ol>${simplifySteps(userN, userD).map(s => `<li>${s}</li>`).join('')}</ol>
