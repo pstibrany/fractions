@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brøkregner — Lær at regne med brøker</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(160deg, #1a3a5c 0%, #2b5a8a 30%, #3a6b9f 50%, #2b5a8a 70%, #1a3a5c 100%);
+            background-attachment: fixed;
+            color: #1a202c;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        header {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        header h1 { font-size: 2rem; margin-bottom: 0.25rem; letter-spacing: 0.02em; }
+        header p { opacity: 0.8; font-size: 1.05rem; }
+
+        main {
+            max-width: 720px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Operation tabs */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1.1rem;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .tab-btn:hover { background: rgba(255,255,255,0.25); color: white; }
+        .tab-btn.active { background: rgba(255,255,255,0.92); color: #2b5a8a; border-color: rgba(255,255,255,0.92); font-weight: 600; }
+
+        /* Cards */
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.08);
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: #1a3a5c;
+        }
+
+        .card p { margin-bottom: 0.5rem; }
+
+        /* Fraction inputs */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .fraction-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .fraction-input input {
+            width: 64px;
+            text-align: center;
+            padding: 0.4rem;
+            font-size: 1.1rem;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            transition: border-color 0.2s;
+        }
+
+        .fraction-input input:focus {
+            outline: none;
+            border-color: #2b5a8a;
+        }
+
+        .fraction-line {
+            width: 64px;
+            height: 2px;
+            background: #1a202c;
+        }
+
+        .op-symbol {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2b5a8a;
+        }
+
+        /* Stacked fraction display */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 0.15em;
+            font-family: "Cambria Math", Georgia, serif;
+        }
+
+        .frac .frac-num,
+        .frac .frac-den {
+            padding: 0 0.25em;
+            line-height: 1.3;
+        }
+
+        .frac .frac-num {
+            border-bottom: 2px solid currentColor;
+        }
+
+        .formula .frac { font-size: 1.15rem; }
+        .steps .frac { font-size: 1rem; }
+        .result-box .frac { font-size: 1.2rem; }
+
+        .btn {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, #2b5a8a, #1a3a5c);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(26,58,92,0.3);
+        }
+
+        .btn:hover { background: linear-gradient(135deg, #3a6b9f, #2b5a8a); box-shadow: 0 3px 12px rgba(26,58,92,0.4); }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b, #475569);
+            box-shadow: 0 2px 8px rgba(71,85,105,0.3);
+        }
+
+        .btn-secondary:hover { background: linear-gradient(135deg, #78859b, #64748b); }
+
+        /* Result & steps */
+        .result-area {
+            margin-top: 1.25rem;
+            display: none;
+        }
+
+        .result-area.visible { display: block; }
+
+        .result-box {
+            background: linear-gradient(135deg, #e8f4fd, #dbeafe);
+            border-left: 4px solid #2b5a8a;
+            border-right: 4px solid #2b5a8a;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .steps {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+        }
+
+        .steps h3 {
+            font-size: 1rem;
+            color: #1a3a5c;
+            margin-bottom: 0.5rem;
+        }
+
+        .steps ol {
+            padding-left: 1.25rem;
+        }
+
+        .steps li {
+            margin-bottom: 0.4rem;
+        }
+
+        .error {
+            color: #c53030;
+            font-weight: 600;
+        }
+
+        /* Theory section */
+        .theory { font-size: 0.95rem; color: #4a5568; }
+        .theory .formula {
+            display: block;
+            text-align: center;
+            font-family: "Cambria Math", Georgia, serif;
+            font-size: 1.15rem;
+            margin: 0.75rem 0;
+            padding: 0.5rem;
+            background: #f0f6fc;
+            border-radius: 8px;
+            color: #1a3a5c;
+        }
+
+        /* Quiz / exercise section */
+        .quiz-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.08);
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #d69e2e;
+            border-right: 4px solid #d69e2e;
+        }
+
+        .quiz-card h2 {
+            font-size: 1.15rem;
+            color: #92711f;
+            margin-bottom: 0.75rem;
+        }
+
+        .quiz-problem {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            flex-wrap: wrap;
+            font-size: 1.15rem;
+            margin-bottom: 1rem;
+        }
+
+        .quiz-answer-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .quiz-answer-row label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .quiz-feedback {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+            display: none;
+        }
+
+        .quiz-feedback.visible { display: block; }
+
+        .quiz-feedback.correct {
+            background: #f0fff4;
+            border-left: 4px solid #38a169;
+            border-right: 4px solid #38a169;
+            border-radius: 8px;
+            color: #276749;
+        }
+
+        .quiz-feedback.wrong {
+            background: #fff5f5;
+            border-left: 4px solid #e53e3e;
+            border-right: 4px solid #e53e3e;
+            border-radius: 8px;
+            color: #9b2c2c;
+        }
+
+        .quiz-feedback .frac { font-size: 1rem; }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+        }
+
+        /* ── Responsive: iPad (portrait & landscape) ── */
+        @media (max-width: 820px) {
+            main {
+                padding: 0 1.25rem;
+            }
+
+            .card, .quiz-card {
+                padding: 1.25rem 1.5rem;
+            }
+        }
+
+        /* ── Responsive: iPhone / small phones ── */
+        @media (max-width: 500px) {
+            header {
+                padding: 1.5rem 1rem;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            header p {
+                font-size: 0.9rem;
+            }
+
+            main {
+                margin: 1rem auto;
+                padding: 0 0.75rem;
+            }
+
+            /* Tabs: 3 per row, fill width */
+            .tabs {
+                gap: 0.4rem;
+                margin-bottom: 1.25rem;
+            }
+
+            .tab-btn {
+                padding: 0.45rem 0.7rem;
+                font-size: 0.8rem;
+                flex: 1 1 auto;
+                text-align: center;
+                min-width: 0;
+            }
+
+            /* Cards */
+            .card, .quiz-card {
+                padding: 1rem 1rem;
+                margin-bottom: 1rem;
+                border-radius: 10px;
+            }
+
+            .card h2, .quiz-card h2 {
+                font-size: 1.05rem;
+            }
+
+            /* Input rows stack better */
+            .input-row {
+                gap: 0.5rem;
+                justify-content: center;
+            }
+
+            .fraction-input input {
+                width: 56px;
+                font-size: 1rem;
+                padding: 0.35rem;
+            }
+
+            .fraction-line {
+                width: 56px;
+            }
+
+            /* Whole number input in mixed mode */
+            input#whole, input#quiz-whole {
+                width: 56px !important;
+                font-size: 1rem !important;
+            }
+
+            .op-symbol {
+                font-size: 1.25rem;
+            }
+
+            /* Buttons: full width on small screens */
+            .btn {
+                padding: 0.55rem 1.2rem;
+                font-size: 0.95rem;
+            }
+
+            /* Quiz */
+            .quiz-problem {
+                font-size: 1.05rem;
+                justify-content: center;
+            }
+
+            .quiz-answer-row {
+                gap: 0.5rem;
+                justify-content: center;
+            }
+
+            .quiz-answer-row label {
+                width: 100%;
+                text-align: center;
+                margin-bottom: 0.25rem;
+            }
+
+            .quiz-feedback {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            /* Formula */
+            .theory .formula {
+                font-size: 1rem;
+                overflow-x: auto;
+                padding: 0.25rem 0;
+            }
+
+            .formula .frac { font-size: 1rem; }
+
+            /* Results */
+            .result-box {
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+            }
+
+            .result-box .frac { font-size: 1.05rem; }
+
+            .steps {
+                padding: 0.75rem 1rem;
+            }
+
+            .steps ol {
+                padding-left: 1rem;
+            }
+
+            .steps li {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* ── Responsive: very small phones (iPhone SE etc.) ── */
+        @media (max-width: 375px) {
+            .tab-btn {
+                padding: 0.4rem 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .fraction-input input {
+                width: 48px;
+                font-size: 0.95rem;
+            }
+
+            .fraction-line {
+                width: 48px;
+            }
+
+            input#whole, input#quiz-whole {
+                width: 48px !important;
+            }
+
+            .quiz-problem {
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Prevent iOS zoom on input focus (requires 16px minimum) */
+        @media screen and (max-width: 820px) {
+            input[type="number"] {
+                font-size: 16px;
+            }
+        }
+
+        /* Safe area insets for notched iPhones */
+        @supports (padding: env(safe-area-inset-bottom)) {
+            footer {
+                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            }
+
+            header {
+                padding-top: calc(1.5rem + env(safe-area-inset-top));
+            }
+        }
+
+        /* Touch-friendly: larger tap targets */
+        @media (pointer: coarse) {
+            .tab-btn {
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .btn {
+                min-height: 44px;
+            }
+
+            .fraction-input input {
+                min-height: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Brøkregner</h1>
+    <p>Lær at regne med brøker — trin for trin</p>
+</header>
+
+<main>
+    <div class="tabs" id="tabs">
+        <button class="tab-btn active" data-op="addition">Addition</button>
+        <button class="tab-btn" data-op="subtraktion">Subtraktion</button>
+        <button class="tab-btn" data-op="multiplikation">Multiplikation</button>
+        <button class="tab-btn" data-op="division">Division</button>
+        <button class="tab-btn" data-op="forkortning">Forkortning</button>
+        <button class="tab-btn" data-op="blandet">Blandet tal</button>
+    </div>
+
+    <!-- Theory card -->
+    <div class="card" id="theory-card"></div>
+
+    <!-- Quiz / exercise card -->
+    <div class="quiz-card" id="quiz-card"></div>
+
+    <!-- Input card -->
+    <div class="card" id="input-card"></div>
+
+    <!-- Result card -->
+    <div class="result-area" id="result-area">
+        <div class="card">
+            <div class="result-box" id="result-box"></div>
+            <div class="steps" id="steps"></div>
+        </div>
+    </div>
+</main>
+
+<footer>Brøkregner &mdash; et læringsværktøj til brøkregning</footer>
+
+<script>
+// ── Utility functions ──────────────────────────────────────────
+
+function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { [a, b] = [b, a % b]; }
+    return a;
+}
+
+function lcm(a, b) {
+    return Math.abs(a * b) / gcd(a, b);
+}
+
+function simplify(n, d) {
+    if (d === 0) return [n, d];
+    if (n === 0) return [0, 1];
+    const g = gcd(n, d);
+    let sn = n / g, sd = d / g;
+    if (sd < 0) { sn = -sn; sd = -sd; }
+    return [sn, sd];
+}
+
+// Find the smallest factor > 1 that divides both a and b
+function smallestCommonFactor(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    const limit = Math.min(a, b);
+    for (let i = 2; i <= limit; i++) {
+        if (a % i === 0 && b % i === 0) return i;
+    }
+    return null;
+}
+
+function frac(n, d) {
+    return `<span class="frac"><span class="frac-num">${n}</span><span class="frac-den">${d}</span></span>`;
+}
+
+function fracHtml(n, d) {
+    return frac(n, d);
+}
+
+// Random int in [min, max]
+function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// ── Theory texts ───────────────────────────────────────────────
+
+function theoryAddition() {
+    return `
+        <h2>Addition af brøker</h2>
+        <p class="theory">For at lægge to brøker sammen skal de have <strong>samme nævner</strong> (fællesnævner).
+        Derefter lægger man tællerne sammen og beholder nævneren.</p>
+        <span class="formula">${frac('a','b')} + ${frac('c','d')} = ${frac('a·d + c·b','b·d')}</span>
+        <p class="theory">Til sidst forkortes brøken hvis muligt.</p>
+    `;
+}
+
+function theorySubtraktion() {
+    return `
+        <h2>Subtraktion af brøker</h2>
+        <p class="theory">Subtraktion fungerer ligesom addition — find fællesnævner, og træk derefter tællerne fra hinanden.</p>
+        <span class="formula">${frac('a','b')} − ${frac('c','d')} = ${frac('a·d − c·b','b·d')}</span>
+        <p class="theory">Til sidst forkortes brøken hvis muligt.</p>
+    `;
+}
+
+function theoryMultiplikation() {
+    return `
+        <h2>Multiplikation af brøker</h2>
+        <p class="theory">Gange brøker er enkelt: gang tæller med tæller og nævner med nævner.</p>
+        <span class="formula">${frac('a','b')} × ${frac('c','d')} = ${frac('a·c','b·d')}</span>
+        <p class="theory">Til sidst forkortes brøken hvis muligt.</p>
+    `;
+}
+
+function theoryDivision() {
+    return `
+        <h2>Division af brøker</h2>
+        <p class="theory">At dividere med en brøk er det samme som at gange med den <strong>omvendte brøk</strong> (tæller og nævner byttes om).</p>
+        <span class="formula">${frac('a','b')} ÷ ${frac('c','d')} = ${frac('a','b')} × ${frac('d','c')} = ${frac('a·d','b·c')}</span>
+        <p class="theory">Til sidst forkortes brøken hvis muligt.</p>
+    `;
+}
+
+function theoryForkortning() {
+    return `
+        <h2>Forkortning af brøker</h2>
+        <p class="theory">At forkorte en brøk betyder at finde et tal som <strong>både tæller og nævner kan deles med</strong>, og så dividere begge med det tal. Gentag indtil der ikke er flere fælles faktorer.</p>
+        <span class="formula">${frac(12,18)} → begge kan deles med 2 → ${frac(6,9)} → begge kan deles med 3 → ${frac(2,3)}</span>
+        <p class="theory">Brøken er fuldt forkortet når tæller og nævner ikke kan deles med det samme tal længere.</p>
+    `;
+}
+
+function theoryBlandet() {
+    return `
+        <h2>Blandede tal og uægte brøker</h2>
+        <p class="theory"><strong>Blandet tal → uægte brøk:</strong> Gang heltallet med nævneren og læg tælleren til.</p>
+        <span class="formula">a ${frac('b','c')} = ${frac('a·c + b','c')}</span>
+        <p class="theory"><strong>Uægte brøk → blandet tal:</strong> Divider tælleren med nævneren. Kvotienten er heltallet, resten er ny tæller.</p>
+        <span class="formula">${frac('a','b')} = (a ÷ b) med rest r → (a÷b) ${frac('r','b')}</span>
+    `;
+}
+
+const theories = {
+    addition: theoryAddition(),
+    subtraktion: theorySubtraktion(),
+    multiplikation: theoryMultiplikation(),
+    division: theoryDivision(),
+    forkortning: theoryForkortning(),
+    blandet: theoryBlandet()
+};
+
+// ── Quiz / exercise generation ─────────────────────────────────
+
+let currentQuiz = null;
+
+function generateQuiz(op) {
+    switch (op) {
+        case 'addition': return generateTwoFracQuiz('+');
+        case 'subtraktion': return generateTwoFracQuiz('−');
+        case 'multiplikation': return generateTwoFracQuiz('×');
+        case 'division': return generateTwoFracQuiz('÷');
+        case 'forkortning': return generateForkortQuiz();
+        case 'blandet': return generateBlandetQuiz();
+    }
+}
+
+function generateTwoFracQuiz(opSymbol) {
+    const denoms = [2, 3, 4, 5, 6, 8, 10, 12];
+    let n1, d1, n2, d2, rn, rd;
+
+    // Keep generating until we get a reasonable result
+    for (let attempt = 0; attempt < 50; attempt++) {
+        d1 = denoms[randInt(0, denoms.length - 1)];
+        d2 = denoms[randInt(0, denoms.length - 1)];
+        n1 = randInt(1, d1 - 1);
+        n2 = randInt(1, d2 - 1);
+
+        if (opSymbol === '÷' && n2 === 0) continue;
+
+        // Calculate result
+        switch (opSymbol) {
+            case '+': rn = n1 * d2 + n2 * d1; rd = d1 * d2; break;
+            case '−': rn = n1 * d2 - n2 * d1; rd = d1 * d2; break;
+            case '×': rn = n1 * n2; rd = d1 * d2; break;
+            case '÷': rn = n1 * d2; rd = d1 * n2; break;
+        }
+
+        if (rn === 0 && opSymbol === '−') continue;
+        if (rd === 0) continue;
+        // For subtraction, ensure positive result
+        if (opSymbol === '−' && rn < 0) continue;
+
+        break;
+    }
+
+    const [sn, sd] = simplify(rn, rd);
+
+    return {
+        problemHtml: `${frac(n1,d1)} ${opSymbol} ${frac(n2,d2)} = ?`,
+        answerN: sn,
+        answerD: sd,
+        inputType: 'fraction',
+        explain: () => {
+            switch (opSymbol) {
+                case '+': return calcAddition(n1, d1, n2, d2);
+                case '−': return calcSubtraktion(n1, d1, n2, d2);
+                case '×': return calcMultiplikation(n1, d1, n2, d2);
+                case '÷': return calcDivision(n1, d1, n2, d2);
+            }
+        }
+    };
+}
+
+function generateForkortQuiz() {
+    // Generate a fraction that CAN be simplified
+    const factors = [2, 3, 4, 5, 6];
+    const f = factors[randInt(0, factors.length - 1)];
+    const sn = randInt(1, 8);
+    const sd = randInt(sn + 1, 12); // ensure proper fraction
+    // Make sure sn and sd are coprime-ish
+    const n = sn * f;
+    const d = sd * f;
+
+    const [an, ad] = simplify(n, d);
+
+    return {
+        problemHtml: `Forkort ${frac(n, d)}`,
+        answerN: an,
+        answerD: ad,
+        inputType: 'fraction',
+        explain: () => calcForkortning(n, d)
+    };
+}
+
+function generateBlandetQuiz() {
+    // Randomly choose direction
+    if (Math.random() < 0.5) {
+        // Mixed → improper
+        const whole = randInt(1, 5);
+        const d = randInt(2, 8);
+        const n = randInt(1, d - 1);
+        const resultN = whole * d + n;
+        const [sn, sd] = simplify(resultN, d);
+
+        return {
+            problemHtml: `Omskriv ${whole} ${frac(n, d)} til en uægte brøk`,
+            answerN: sn,
+            answerD: sd,
+            inputType: 'fraction',
+            explain: () => calcMixedToImproper(whole, n, d)
+        };
+    } else {
+        // Improper → mixed
+        const d = randInt(2, 8);
+        const whole = randInt(1, 5);
+        const rem = randInt(1, d - 1);
+        const n = whole * d + rem;
+        const [srem, sd2] = simplify(rem, d);
+
+        return {
+            problemHtml: `Omskriv ${frac(n, d)} til et blandet tal`,
+            answerWhole: whole,
+            answerN: srem,
+            answerD: sd2,
+            inputType: 'mixed',
+            explain: () => calcImproperToMixed(n, d)
+        };
+    }
+}
+
+function renderQuiz() {
+    const quiz = generateQuiz(currentOp);
+    currentQuiz = quiz;
+
+    let answerInputs;
+    if (quiz.inputType === 'mixed') {
+        answerInputs = `
+            <div class="quiz-answer-row">
+                <label>Dit svar:</label>
+                <input type="number" id="quiz-whole" placeholder="heltal" style="width:60px;text-align:center;padding:0.4rem;font-size:1.1rem;border:2px solid #cbd5e0;border-radius:6px;" aria-label="Heltal">
+                <div class="fraction-input">
+                    <input type="number" id="quiz-n" placeholder="tæller" aria-label="Tæller">
+                    <div class="fraction-line"></div>
+                    <input type="number" id="quiz-d" placeholder="nævner" aria-label="Nævner">
+                </div>
+                <button class="btn" id="quiz-check-btn">Tjek svar</button>
+            </div>
+        `;
+    } else {
+        answerInputs = `
+            <div class="quiz-answer-row">
+                <label>Dit svar:</label>
+                <div class="fraction-input">
+                    <input type="number" id="quiz-n" placeholder="tæller" aria-label="Tæller">
+                    <div class="fraction-line"></div>
+                    <input type="number" id="quiz-d" placeholder="nævner" aria-label="Nævner">
+                </div>
+                <button class="btn" id="quiz-check-btn">Tjek svar</button>
+            </div>
+        `;
+    }
+
+    const quizCard = document.getElementById('quiz-card');
+    quizCard.innerHTML = `
+        <h2>Prøv selv!</h2>
+        <div class="quiz-problem">${quiz.problemHtml}</div>
+        ${answerInputs}
+        <div class="quiz-feedback" id="quiz-feedback"></div>
+        <div style="margin-top:0.75rem;">
+            <button class="btn btn-secondary" id="quiz-new-btn">Nyt regnestykke</button>
+        </div>
+    `;
+
+    document.getElementById('quiz-check-btn').addEventListener('click', checkQuiz);
+    document.getElementById('quiz-new-btn').addEventListener('click', renderQuiz);
+
+    quizCard.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkQuiz();
+        });
+    });
+}
+
+function checkQuiz() {
+    const quiz = currentQuiz;
+    if (!quiz) return;
+
+    const fb = document.getElementById('quiz-feedback');
+    const userN = parseInt(document.getElementById('quiz-n')?.value, 10);
+    const userD = parseInt(document.getElementById('quiz-d')?.value, 10);
+
+    if (quiz.inputType === 'mixed') {
+        const userWhole = parseInt(document.getElementById('quiz-whole')?.value, 10);
+        if (isNaN(userWhole) || isNaN(userN) || isNaN(userD)) {
+            fb.className = 'quiz-feedback visible wrong';
+            fb.innerHTML = 'Udfyld venligst alle felter.';
+            return;
+        }
+        if (userD === 0) {
+            fb.className = 'quiz-feedback visible wrong';
+            fb.innerHTML = 'Nævneren må ikke være nul.';
+            return;
+        }
+
+        // Check: user's mixed number = expected mixed number
+        // Convert both to improper fractions and compare simplified forms
+        const userImproperN = userWhole * userD + userN;
+        const [usn, usd] = simplify(userImproperN, userD);
+        const expectedImproperN = quiz.answerWhole * quiz.answerD + quiz.answerN;
+        const [esn, esd] = simplify(expectedImproperN, quiz.answerD);
+
+        if (usn === esn && usd === esd) {
+            fb.className = 'quiz-feedback visible correct';
+            fb.innerHTML = `<strong>Rigtigt!</strong> Svaret er ${quiz.answerWhole} ${frac(quiz.answerN, quiz.answerD)}.`;
+        } else {
+            const result = quiz.explain();
+            fb.className = 'quiz-feedback visible wrong';
+            fb.innerHTML = `
+                <strong>Ikke helt rigtigt.</strong> Det korrekte svar er ${quiz.answerWhole} ${frac(quiz.answerN, quiz.answerD)}.
+                <div class="steps" style="margin-top:0.75rem;">
+                    <h3>Sådan gør man:</h3>
+                    <ol>${result.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+                </div>
+            `;
+        }
+    } else {
+        if (isNaN(userN) || isNaN(userD)) {
+            fb.className = 'quiz-feedback visible wrong';
+            fb.innerHTML = 'Udfyld venligst alle felter.';
+            return;
+        }
+        if (userD === 0) {
+            fb.className = 'quiz-feedback visible wrong';
+            fb.innerHTML = 'Nævneren må ikke være nul.';
+            return;
+        }
+
+        // Check that the answer is exactly correct AND fully simplified
+        const [usn, usd] = simplify(userN, userD);
+        const isEquivalent = usn === quiz.answerN && usd === quiz.answerD;
+        const isFullySimplified = userN === usn && userD === usd;
+
+        if (isEquivalent && isFullySimplified) {
+            fb.className = 'quiz-feedback visible correct';
+            let answerDisplay = quiz.answerD === 1 ? `${quiz.answerN}` : frac(quiz.answerN, quiz.answerD);
+            fb.innerHTML = `<strong>Rigtigt!</strong> Svaret er ${answerDisplay}.`;
+        } else if (isEquivalent && !isFullySimplified) {
+            // Right value but not fully simplified
+            const result = quiz.explain();
+            let answerDisplay = quiz.answerD === 1 ? `${quiz.answerN}` : frac(quiz.answerN, quiz.answerD);
+            fb.className = 'quiz-feedback visible wrong';
+            fb.innerHTML = `
+                <strong>Næsten!</strong> ${frac(userN, userD)} er rigtigt udregnet, men brøken kan forkortes yderligere. Det fuldt forkortede svar er ${answerDisplay}.
+                <div class="steps" style="margin-top:0.75rem;">
+                    <h3>Sådan forkorter man:</h3>
+                    <ol>${simplifySteps(userN, userD).map(s => `<li>${s}</li>`).join('')}</ol>
+                </div>
+            `;
+        } else {
+            const result = quiz.explain();
+            let answerDisplay = quiz.answerD === 1 ? `${quiz.answerN}` : frac(quiz.answerN, quiz.answerD);
+            fb.className = 'quiz-feedback visible wrong';
+            fb.innerHTML = `
+                <strong>Ikke helt rigtigt.</strong> Det korrekte svar er ${answerDisplay}.
+                <div class="steps" style="margin-top:0.75rem;">
+                    <h3>Sådan gør man:</h3>
+                    <ol>${result.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+                </div>
+            `;
+        }
+    }
+}
+
+// ── Input templates ────────────────────────────────────────────
+
+function twoFractionInput(opSymbol) {
+    return `
+        <h2>Prøv din egen beregning</h2>
+        <div class="input-row">
+            <div class="fraction-input">
+                <input type="number" id="n1" placeholder="tæller" aria-label="Første tæller">
+                <div class="fraction-line"></div>
+                <input type="number" id="d1" placeholder="nævner" aria-label="Første nævner">
+            </div>
+            <span class="op-symbol">${opSymbol}</span>
+            <div class="fraction-input">
+                <input type="number" id="n2" placeholder="tæller" aria-label="Anden tæller">
+                <div class="fraction-line"></div>
+                <input type="number" id="d2" placeholder="nævner" aria-label="Anden nævner">
+            </div>
+            <button class="btn" id="calc-btn">Beregn</button>
+        </div>
+    `;
+}
+
+function oneFractionInput(label) {
+    return `
+        <h2>Prøv din egen beregning</h2>
+        <p style="margin-bottom:0.5rem; font-weight:600;">${label}</p>
+        <div class="input-row">
+            <div class="fraction-input">
+                <input type="number" id="n1" placeholder="tæller" aria-label="Tæller">
+                <div class="fraction-line"></div>
+                <input type="number" id="d1" placeholder="nævner" aria-label="Nævner">
+            </div>
+            <button class="btn" id="calc-btn">Forkort</button>
+        </div>
+    `;
+}
+
+function mixedInput() {
+    return `
+        <h2>Prøv din egen beregning</h2>
+        <p style="margin-bottom:0.75rem; font-weight:600;">Vælg retning:</p>
+        <div class="tabs" style="justify-content:flex-start; margin-bottom:1rem;">
+            <button class="tab-btn active" data-dir="to-improper" id="dir-to-improper">Blandet → Uægte</button>
+            <button class="tab-btn" data-dir="to-mixed" id="dir-to-mixed">Uægte → Blandet</button>
+        </div>
+        <div id="mixed-inputs"></div>
+    `;
+}
+
+function mixedToImproperInputs() {
+    return `
+        <div class="input-row">
+            <input type="number" id="whole" placeholder="heltal" style="width:64px;text-align:center;padding:0.4rem;font-size:1.1rem;border:2px solid #cbd5e0;border-radius:6px;" aria-label="Heltal">
+            <div class="fraction-input">
+                <input type="number" id="n1" placeholder="tæller" aria-label="Tæller">
+                <div class="fraction-line"></div>
+                <input type="number" id="d1" placeholder="nævner" aria-label="Nævner">
+            </div>
+            <button class="btn" id="calc-btn">Beregn</button>
+        </div>
+    `;
+}
+
+function improperToMixedInputs() {
+    return `
+        <div class="input-row">
+            <div class="fraction-input">
+                <input type="number" id="n1" placeholder="tæller" aria-label="Tæller">
+                <div class="fraction-line"></div>
+                <input type="number" id="d1" placeholder="nævner" aria-label="Nævner">
+            </div>
+            <button class="btn" id="calc-btn">Beregn</button>
+        </div>
+    `;
+}
+
+// ── Calculation logic ──────────────────────────────────────────
+
+function calcAddition(n1, d1, n2, d2) {
+    const steps = [];
+    steps.push(`Vi skal beregne ${frac(n1,d1)} + ${frac(n2,d2)}.`);
+
+    if (d1 === d2) {
+        steps.push(`Brøkerne har allerede samme nævner (${d1}).`);
+        const rn = n1 + n2;
+        steps.push(`Læg tællerne sammen: ${n1} + ${n2} = ${rn}. Resultatet er ${frac(rn, d1)}.`);
+        const [sn, sd] = simplify(rn, d1);
+        if (sn !== rn || sd !== d1) {
+            steps.push(...simplifySteps(rn, d1));
+        } else {
+            steps.push(`Brøken kan ikke forkortes yderligere.`);
+        }
+        return { n: sn, d: sd, steps };
+    }
+
+    const l = lcm(d1, d2);
+    steps.push(`Find fællesnævner: mindste fælles multiplum af ${d1} og ${d2} er ${l}.`);
+
+    const f1 = l / d1, f2 = l / d2;
+    const nn1 = n1 * f1, nn2 = n2 * f2;
+    steps.push(`Udvid brøkerne: ${frac(n1,d1)} = ${frac(nn1,l)} og ${frac(n2,d2)} = ${frac(nn2,l)}.`);
+
+    const rn = nn1 + nn2;
+    steps.push(`Læg tællerne sammen: ${nn1} + ${nn2} = ${rn}. Resultatet er ${frac(rn, l)}.`);
+
+    const [sn, sd] = simplify(rn, l);
+    if (sn !== rn || sd !== l) {
+        steps.push(...simplifySteps(rn, l));
+    } else {
+        steps.push(`Brøken kan ikke forkortes yderligere.`);
+    }
+
+    return { n: sn, d: sd, steps };
+}
+
+function calcSubtraktion(n1, d1, n2, d2) {
+    const steps = [];
+    steps.push(`Vi skal beregne ${frac(n1,d1)} − ${frac(n2,d2)}.`);
+
+    if (d1 === d2) {
+        steps.push(`Brøkerne har allerede samme nævner (${d1}).`);
+        const rn = n1 - n2;
+        steps.push(`Træk tællerne fra: ${n1} − ${n2} = ${rn}. Resultatet er ${frac(rn, d1)}.`);
+        const [sn, sd] = simplify(rn, d1);
+        if (sn !== rn || sd !== d1) {
+            steps.push(...simplifySteps(rn, d1));
+        } else {
+            steps.push(`Brøken kan ikke forkortes yderligere.`);
+        }
+        return { n: sn, d: sd, steps };
+    }
+
+    const l = lcm(d1, d2);
+    steps.push(`Find fællesnævner: mindste fælles multiplum af ${d1} og ${d2} er ${l}.`);
+
+    const f1 = l / d1, f2 = l / d2;
+    const nn1 = n1 * f1, nn2 = n2 * f2;
+    steps.push(`Udvid brøkerne: ${frac(n1,d1)} = ${frac(nn1,l)} og ${frac(n2,d2)} = ${frac(nn2,l)}.`);
+
+    const rn = nn1 - nn2;
+    steps.push(`Træk tællerne fra: ${nn1} − ${nn2} = ${rn}. Resultatet er ${frac(rn, l)}.`);
+
+    const [sn, sd] = simplify(rn, l);
+    if (sn !== rn || sd !== l) {
+        steps.push(...simplifySteps(rn, l));
+    } else {
+        steps.push(`Brøken kan ikke forkortes yderligere.`);
+    }
+
+    return { n: sn, d: sd, steps };
+}
+
+function calcMultiplikation(n1, d1, n2, d2) {
+    const steps = [];
+    steps.push(`Vi skal beregne ${frac(n1,d1)} × ${frac(n2,d2)}.`);
+
+    const rn = n1 * n2, rd = d1 * d2;
+    steps.push(`Gang tæller med tæller: ${n1} × ${n2} = ${rn}.`);
+    steps.push(`Gang nævner med nævner: ${d1} × ${d2} = ${rd}.`);
+    steps.push(`Resultatet er ${frac(rn, rd)}.`);
+
+    const [sn, sd] = simplify(rn, rd);
+    if (sn !== rn || sd !== rd) {
+        steps.push(...simplifySteps(rn, rd));
+    } else {
+        steps.push(`Brøken kan ikke forkortes yderligere.`);
+    }
+
+    return { n: sn, d: sd, steps };
+}
+
+function calcDivision(n1, d1, n2, d2) {
+    const steps = [];
+    steps.push(`Vi skal beregne ${frac(n1,d1)} ÷ ${frac(n2,d2)}.`);
+
+    if (n2 === 0) {
+        return { n: 0, d: 0, steps: ['Fejl: Man kan ikke dividere med nul.'], error: true };
+    }
+
+    steps.push(`Vend den anden brøk om: ${frac(n2,d2)} bliver til ${frac(d2,n2)}.`);
+    steps.push(`Gang med den omvendte brøk: ${frac(n1,d1)} × ${frac(d2,n2)}.`);
+
+    const rn = n1 * d2, rd = d1 * n2;
+    steps.push(`Tæller: ${n1} × ${d2} = ${rn}. Nævner: ${d1} × ${n2} = ${rd}.`);
+    steps.push(`Resultatet er ${frac(rn, rd)}.`);
+
+    const [sn, sd] = simplify(rn, rd);
+    if (sn !== rn || sd !== rd) {
+        steps.push(...simplifySteps(rn, rd));
+    } else {
+        steps.push(`Brøken kan ikke forkortes yderligere.`);
+    }
+
+    return { n: sn, d: sd, steps };
+}
+
+// Iterative simplification: find a common factor, divide, repeat
+function simplifySteps(n, d) {
+    const steps = [];
+    let cn = Math.abs(n), cd = Math.abs(d);
+    let sign = (n < 0) !== (d < 0) ? -1 : 1;
+
+    let f = smallestCommonFactor(cn, cd);
+    while (f !== null) {
+        steps.push(`Både ${cn} og ${cd} kan deles med ${f}: ${frac(cn, cd)} = ${frac(cn / f, cd / f)}.`);
+        cn = cn / f;
+        cd = cd / f;
+        f = smallestCommonFactor(cn, cd);
+    }
+
+    if (sign < 0) {
+        steps.push(`Den forkortede brøk er ${frac(-cn, cd)}.`);
+    } else {
+        steps.push(`Den forkortede brøk er ${frac(cn, cd)}.`);
+    }
+
+    return steps;
+}
+
+function calcForkortning(n, d) {
+    const steps = [];
+    steps.push(`Vi skal forkorte ${frac(n, d)}.`);
+
+    let cn = Math.abs(n), cd = Math.abs(d);
+    let sign = (n < 0) !== (d < 0) ? -1 : 1;
+
+    let f = smallestCommonFactor(cn, cd);
+    if (f === null) {
+        steps.push(`Tæller og nævner har ingen fælles faktorer. Brøken er allerede fuldt forkortet.`);
+        const [sn, sd2] = simplify(n, d);
+        return { n: sn, d: sd2, steps };
+    }
+
+    while (f !== null) {
+        steps.push(`Både ${cn} og ${cd} kan deles med ${f}: ${frac(cn, cd)} = ${frac(cn / f, cd / f)}.`);
+        cn = cn / f;
+        cd = cd / f;
+        f = smallestCommonFactor(cn, cd);
+    }
+
+    steps.push(`Der er ingen flere fælles faktorer. Brøken er nu fuldt forkortet.`);
+
+    return { n: sign * cn, d: cd, steps };
+}
+
+function calcMixedToImproper(whole, n, d) {
+    const steps = [];
+    steps.push(`Vi skal omskrive det blandede tal ${whole} ${frac(n, d)} til en uægte brøk.`);
+    steps.push(`Gang heltallet med nævneren: ${whole} × ${d} = ${whole * d}.`);
+    const newN = whole * d + n;
+    steps.push(`Læg tælleren til: ${whole * d} + ${n} = ${newN}.`);
+    steps.push(`Resultatet er ${frac(newN, d)}.`);
+
+    const [sn, sd] = simplify(newN, d);
+    if (sn !== newN || sd !== d) {
+        steps.push(...simplifySteps(newN, d));
+    }
+
+    return { n: sn, d: sd, steps, display: frac(newN, d) };
+}
+
+function calcImproperToMixed(n, d) {
+    const steps = [];
+    steps.push(`Vi skal omskrive den uægte brøk ${frac(n, d)} til et blandet tal.`);
+
+    const whole = Math.floor(Math.abs(n) / Math.abs(d));
+    const rem = Math.abs(n) % Math.abs(d);
+    const sign = (n < 0) !== (d < 0) ? -1 : 1;
+
+    steps.push(`Divider tælleren med nævneren: ${Math.abs(n)} ÷ ${Math.abs(d)} = ${whole} med rest ${rem}.`);
+
+    if (rem === 0) {
+        const result = sign * whole;
+        steps.push(`Der er ingen rest, så resultatet er heltallet ${result}.`);
+        return { whole: result, n: 0, d: Math.abs(d), steps, isMixed: true };
+    }
+
+    const [sn, sd] = simplify(rem, Math.abs(d));
+    const displayWhole = sign * whole;
+
+    if (sn !== rem || sd !== Math.abs(d)) {
+        steps.push(`Resultatet er ${displayWhole} ${frac(rem, Math.abs(d))}, som forkortet er ${displayWhole} ${frac(sn, sd)}.`);
+    } else {
+        steps.push(`Resultatet er ${displayWhole} ${frac(sn, sd)}.`);
+    }
+
+    return { whole: displayWhole, n: sn, d: sd, steps, isMixed: true };
+}
+
+// ── UI Logic ───────────────────────────────────────────────────
+
+let currentOp = 'addition';
+let mixedDir = 'to-improper';
+
+const theoryCard = document.getElementById('theory-card');
+const inputCard = document.getElementById('input-card');
+const resultArea = document.getElementById('result-area');
+const resultBox = document.getElementById('result-box');
+const stepsDiv = document.getElementById('steps');
+
+function render() {
+    theoryCard.innerHTML = theories[currentOp];
+    resultArea.classList.remove('visible');
+
+    // Render quiz
+    renderQuiz();
+
+    switch (currentOp) {
+        case 'addition':       inputCard.innerHTML = twoFractionInput('+'); break;
+        case 'subtraktion':    inputCard.innerHTML = twoFractionInput('−'); break;
+        case 'multiplikation': inputCard.innerHTML = twoFractionInput('×'); break;
+        case 'division':       inputCard.innerHTML = twoFractionInput('÷'); break;
+        case 'forkortning':    inputCard.innerHTML = oneFractionInput('Indtast en brøk der skal forkortes:'); break;
+        case 'blandet':        inputCard.innerHTML = mixedInput(); renderMixedSub(); break;
+    }
+
+    attachCalcListener();
+}
+
+function renderMixedSub() {
+    const container = document.getElementById('mixed-inputs');
+    if (mixedDir === 'to-improper') {
+        container.innerHTML = mixedToImproperInputs();
+        document.getElementById('dir-to-improper').classList.add('active');
+        document.getElementById('dir-to-mixed').classList.remove('active');
+    } else {
+        container.innerHTML = improperToMixedInputs();
+        document.getElementById('dir-to-mixed').classList.add('active');
+        document.getElementById('dir-to-improper').classList.remove('active');
+    }
+
+    document.getElementById('dir-to-improper').addEventListener('click', () => { mixedDir = 'to-improper'; renderMixedSub(); attachCalcListener(); resultArea.classList.remove('visible'); });
+    document.getElementById('dir-to-mixed').addEventListener('click', () => { mixedDir = 'to-mixed'; renderMixedSub(); attachCalcListener(); resultArea.classList.remove('visible'); });
+
+    attachCalcListener();
+}
+
+function attachCalcListener() {
+    const btn = document.getElementById('calc-btn');
+    if (btn) {
+        btn.addEventListener('click', calculate);
+    }
+
+    inputCard.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Enter') calculate();
+        });
+    });
+}
+
+function getInt(id) {
+    const el = document.getElementById(id);
+    if (!el) return NaN;
+    return parseInt(el.value, 10);
+}
+
+function calculate() {
+    let result;
+
+    if (currentOp === 'blandet') {
+        if (mixedDir === 'to-improper') {
+            const whole = getInt('whole'), n1 = getInt('n1'), d1 = getInt('d1');
+            if ([whole, n1, d1].some(isNaN)) return showError('Udfyld venligst alle felter med hele tal.');
+            if (d1 === 0) return showError('Nævneren må ikke være nul.');
+            result = calcMixedToImproper(whole, n1, d1);
+        } else {
+            const n1 = getInt('n1'), d1 = getInt('d1');
+            if ([n1, d1].some(isNaN)) return showError('Udfyld venligst alle felter med hele tal.');
+            if (d1 === 0) return showError('Nævneren må ikke være nul.');
+            result = calcImproperToMixed(n1, d1);
+        }
+    } else if (currentOp === 'forkortning') {
+        const n1 = getInt('n1'), d1 = getInt('d1');
+        if ([n1, d1].some(isNaN)) return showError('Udfyld venligst alle felter med hele tal.');
+        if (d1 === 0) return showError('Nævneren må ikke være nul.');
+        result = calcForkortning(n1, d1);
+    } else {
+        const n1 = getInt('n1'), d1 = getInt('d1'), n2 = getInt('n2'), d2 = getInt('d2');
+        if ([n1, d1, n2, d2].some(isNaN)) return showError('Udfyld venligst alle felter med hele tal.');
+        if (d1 === 0 || d2 === 0) return showError('Nævneren må ikke være nul.');
+
+        switch (currentOp) {
+            case 'addition':       result = calcAddition(n1, d1, n2, d2); break;
+            case 'subtraktion':    result = calcSubtraktion(n1, d1, n2, d2); break;
+            case 'multiplikation': result = calcMultiplikation(n1, d1, n2, d2); break;
+            case 'division':       result = calcDivision(n1, d1, n2, d2); break;
+        }
+    }
+
+    if (result.error) return showError(result.steps[0]);
+    showResult(result);
+}
+
+function showError(msg) {
+    resultBox.innerHTML = `<span class="error">${msg}</span>`;
+    stepsDiv.innerHTML = '';
+    resultArea.classList.add('visible');
+}
+
+function showResult(result) {
+    let answer;
+    if (result.isMixed) {
+        if (result.n === 0) {
+            answer = `${result.whole}`;
+        } else {
+            answer = `${result.whole} ${frac(result.n, result.d)}`;
+        }
+    } else if (result.d === 1) {
+        answer = `${result.n}`;
+    } else {
+        answer = frac(result.n, result.d);
+    }
+
+    resultBox.innerHTML = `<strong>Resultat:</strong> ${answer}`;
+
+    stepsDiv.innerHTML = `
+        <h3>Fremgangsmåde:</h3>
+        <ol>${result.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+    `;
+
+    resultArea.classList.add('visible');
+}
+
+// ── Tab switching ──────────────────────────────────────────────
+
+document.getElementById('tabs').addEventListener('click', e => {
+    if (!e.target.classList.contains('tab-btn')) return;
+    document.querySelectorAll('#tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentOp = e.target.dataset.op;
+    mixedDir = 'to-improper';
+    render();
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>
